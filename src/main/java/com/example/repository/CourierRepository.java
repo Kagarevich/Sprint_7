@@ -15,8 +15,8 @@ public class CourierRepository {
                 .post("/api/v1/courier");
     }
 
-    public static Response courierRemove(String id) {
-        return given()
+    public static void courierRemove(String id) {
+        given()
                 .delete("/api/v1/courier/" + id);
     }
 

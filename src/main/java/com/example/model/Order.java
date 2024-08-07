@@ -11,7 +11,7 @@ public class Order {
     private Number rentTime;
     private String deliveryDate;
     private Integer track;
-    private String[] colour;
+    private String[] color;
     private String comment;
     private String createdAt;
     private String updatedAt;
@@ -25,7 +25,7 @@ public class Order {
                  Number rentTime,
                  String deliveryDate,
                  Integer track,
-                 String[] colour,
+                 String[] color,
                  String comment) {
         this.firstName = firstName;
         this.lastName = lastName;
@@ -34,7 +34,7 @@ public class Order {
         this.phone = phone;
         this.rentTime = rentTime;
         this.deliveryDate = deliveryDate;
-        this.colour = colour;
+        this.color = color;
         this.comment = comment;
         this.id = null;
         this.courierId = null;
@@ -128,12 +128,12 @@ public class Order {
         this.track = track;
     }
 
-    public String[] getColour() {
-        return colour;
+    public String[] getColor() {
+        return color;
     }
 
-    public void setColour(String[] colour) {
-        this.colour = colour;
+    public void setColor(String[] color) {
+        this.color = color;
     }
 
     public String getComment() {
