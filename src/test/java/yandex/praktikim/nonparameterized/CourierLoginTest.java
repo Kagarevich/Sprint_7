@@ -37,6 +37,7 @@ public class CourierLoginTest extends BaseCourierTestClass {
         compareResponseBodySuccessLogin(response);
     }
 
+    //периодически сервер отдает timeout и тест валится
     //Должна быть ошибка и феилд кейса, так как в документации нет одного поля - поля "code". Когда я писал - была 504
     @Test
     @DisplayName("Проверяем тело ответа при 400 ошибке")
@@ -47,8 +48,8 @@ public class CourierLoginTest extends BaseCourierTestClass {
         courierLoginAndSetCourierId(courier);
         Response response = courierLoginAndSetCourierId(
                 new Courier(
-                        courier.getLogin(),
-                        null
+                        null,
+                        courier.getPassword()
                 )
         );
         removeCourier(courier);

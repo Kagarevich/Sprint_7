@@ -2,6 +2,7 @@ package yandex.praktikim;
 
 import io.qameta.allure.Step;
 import io.restassured.RestAssured;
+import io.restassured.parsing.Parser;
 import io.restassured.response.Response;
 import org.junit.Before;
 
@@ -11,6 +12,7 @@ public class BaseTestClass {
     @Before
     public void setUp() {
         RestAssured.baseURI = BASE_URL;
+        RestAssured.defaultParser = Parser.JSON; // если будет таймаут, а такое тут есть
     }
 
     @Step("Сравниваю код ответа с ожидаемым")
