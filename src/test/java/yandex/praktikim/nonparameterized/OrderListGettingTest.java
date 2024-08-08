@@ -6,7 +6,6 @@ import io.qameta.allure.Description;
 import io.qameta.allure.Step;
 import io.qameta.allure.junit4.DisplayName;
 import io.restassured.response.Response;
-import org.junit.Assert;
 import org.junit.Test;
 import yandex.praktikim.BaseTestClass;
 
@@ -29,7 +28,7 @@ public class OrderListGettingTest extends BaseTestClass {
             "данные взял из документации")
     public void successRequestGetCorrectOrderList() {
         Response response = sendGetRequestOrderList();
-        successDataMatching(response);
+        dataMatching(response);
     }
 
     //Не стал выводить тут Step в отдельный класс, так как запрос тут всего один. Буду писать шаги тут :)
@@ -42,10 +41,10 @@ public class OrderListGettingTest extends BaseTestClass {
 
     @Step
     @DisplayName("Мэтчим данные - это и есть проверка")
-    @Description("Мэтчим данные. Если замэтчатся успешно, то пробрасываем успех" +
+    @Description("Мэтчим данные. Если замэтчатся успешно, то будет успех" +
             "Решил не проверять длину списка заказов, так как он может быть 0, если в бд пока ничего нет")
-    public void successDataMatching(Response response) {
+    public void dataMatching(Response response) {
         response.body().as(OrderList.class);
-        Assert.assertTrue(true);
+        //не знал, нуден ли тут конкретный ассерт, без него тоже будет падать и ничего не блочить при провале теста
     }
 }
