@@ -28,7 +28,7 @@ public class CourierLoginTest extends BaseCourierTestClass {
     //Название поля не имеет смысла спрашивать, так как в случае успеха мы успешно положили поле id из response запроса
     @Test
     @DisplayName("Успех логина курьера в системе - проверка, что в ответе присылается id")
-    @Description("ПМы не можем проверить корректность id, но можем проверить его наличие")
+    @Description("Мы не можем проверить корректность id, но можем проверить его наличие")
     public void courierSuccessLoginResponseBodyIsCorrect() {
         Courier courier = initCourierJavaObject();
         sendPostRequestCourier(courier);

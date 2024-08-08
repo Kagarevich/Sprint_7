@@ -33,7 +33,7 @@ public class CourierCreationRequiredFieldsTest extends BaseCourierTestClass {
 
     //Тут и для кейса "чтобы создать курьера, нужно передать в ручку все обязательные поля"
     //И для кейса "если одного из полей нет, запрос возвращает ошибку",
-    //Так как по документации ВСЕ поля должны быть и они все обязательные
+    //Так как по документации все поля должны быть и они все обязательные
     @Parameterized.Parameters
     public static Object[][] getTestData() {
         return new Object[][] {

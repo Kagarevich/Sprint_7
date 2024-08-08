@@ -1,7 +1,6 @@
 package yandex.praktikim.nonparameterized;
 
 import com.example.model.Courier;
-import com.example.model.ResponseOkBody;
 import com.example.model.ResponseErrorBody;
 import io.qameta.allure.Description;
 import io.qameta.allure.junit4.DisplayName;
@@ -9,6 +8,7 @@ import io.restassured.response.Response;
 import org.junit.Test;
 import yandex.praktikim.BaseCourierTestClass;
 
+//Очищение тестовых данных реализовал через логин (чтобы найти его id) и удаление курьера
 public class CourierCreationTest extends BaseCourierTestClass {
 
     @Test
@@ -31,9 +31,7 @@ public class CourierCreationTest extends BaseCourierTestClass {
         Courier courier = initCourierJavaObject();
         Response response = sendPostRequestCourier(courier);
         removeCourier(courier);
-        compareResponseBodyStatusCodeCreated(
-                response,
-                new ResponseOkBody(true));
+        compareResponseBodyStatusCodeCreated(response);
     }
 
     @Test

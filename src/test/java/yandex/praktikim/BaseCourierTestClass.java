@@ -1,13 +1,12 @@
 package yandex.praktikim;
 
 import com.example.model.Courier;
-import com.example.model.ResponseCourierIdBody;
-import com.example.model.ResponseOkBody;
 import com.example.model.ResponseErrorBody;
 import com.example.repository.CourierRepository;
 import io.qameta.allure.Step;
 import io.restassured.response.Response;
-import org.junit.Assert;
+
+import static org.hamcrest.Matchers.*;
 
 public class BaseCourierTestClass extends BaseTestClass {
 
@@ -61,32 +60,26 @@ public class BaseCourierTestClass extends BaseTestClass {
     }
 
     @Step("Проверка успешного тела ответа запроса создания курьера")
-    public void compareResponseBodyStatusCodeCreated(Response response, ResponseOkBody expected) {
-        ResponseOkBody okBody = response.body().as(ResponseOkBody.class);
-        Assert.assertEquals(
-                "Ожидалось другое тело ответа",
-                expected.getOk(),
-                okBody.getOk()
-        );
+    public void compareResponseBodyStatusCodeCreated(Response response) {
+        response.then()
+                .body("$", hasEntry("ok", true))
+                .and()
+                .body("size()", is(1));
     }
 
-    @Step("Проверка наличия возвращения id при успешном логине курьера")
+    @Step("Проверка наличия возвращения id при успешном логине курьера (сам id мы не знаем - корректный или нет)")
     public void compareResponseBodySuccessLogin(Response response) {
-        ResponseCourierIdBody courierIdBody = response.body().as(ResponseCourierIdBody.class);
-        Assert.assertEquals(
-                "Ожидалось поле id",
-                Integer.class,
-                courierIdBody.getId().getClass()
-        );
+        response.then()
+                .body("$", hasKey("id"))
+                .and()
+                .body("size()", is(1));
     }
 
     @Step("Проверка на одинаковые тела ответов для ошибок, состоящих из одного поля message")
     public void compareResponseBodyError(Response response, ResponseErrorBody expected) {
-        ResponseErrorBody responseErrorBody = response.body().as(ResponseErrorBody.class);
-        Assert.assertEquals(
-                "Ожидалось другое тело ответа",
-                expected.getMessage(),
-                responseErrorBody.getMessage()
-        );
+        response.then()
+                .body("$", hasEntry("message", expected.getMessage()))
+                .and()
+                .body("size()", is(1));
     }
 }

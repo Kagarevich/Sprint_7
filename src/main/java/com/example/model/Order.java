@@ -24,7 +24,6 @@ public class Order {
                  String phone,
                  Number rentTime,
                  String deliveryDate,
-                 Integer track,
                  String[] color,
                  String comment) {
         this.firstName = firstName;
@@ -44,6 +43,33 @@ public class Order {
         this.status = null;
     }
 
+    public Order(String firstName,
+                 String lastName,
+                 String address,
+                 String metroStation,
+                 String phone,
+                 Number rentTime,
+                 String deliveryDate,
+                 Integer track,
+                 String[] color,
+                 String comment) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.address = address;
+        this.metroStation = metroStation;
+        this.phone = phone;
+        this.rentTime = rentTime;
+        this.deliveryDate = deliveryDate;
+        this.color = color;
+        this.comment = comment;
+        this.id = null;
+        this.courierId = null;
+        this.track = track;
+        this.createdAt = null;
+        this.updatedAt = null;
+        this.status = null;
+    }
+
     //в уроке было написано, что нужен для работы сериализации
     public Order() {
     }
@@ -52,9 +78,13 @@ public class Order {
         return id;
     }
 
+
     public void setId(Integer id) {
         this.id = id;
     }
+
+    //Тут надо руками перебирать, без каких методов тесты упадут, а без каких нет, поэтому не стал убирать - в теории
+    //не написано почему некоторые геттеры/сеттеры нужны, а некоторые - нет
 
     public Integer getCourierId() {
         return courierId;
