@@ -1,106 +1,62 @@
 package yandex.praktikim.nonparameterized;
 
+import api.client.CourierClient;
 import com.example.model.Courier;
 import com.example.model.ResponseErrorBody;
+import com.example.model.generator.CourierGenerator;
 import io.qameta.allure.Description;
 import io.qameta.allure.junit4.DisplayName;
 import io.restassured.response.Response;
+import org.junit.Before;
 import org.junit.Test;
-import yandex.praktikim.BaseCourierTestClass;
 
+public class CourierLoginTest {
 
-public class CourierLoginTest extends BaseCourierTestClass {
+    private CourierClient courierClient;
+    private Courier courier;
+
+    @Before
+    public void init() {
+        courierClient = new CourierClient();
+        courier = CourierGenerator.create();
+    }
 
     @Test
     @DisplayName("Успех логина курьера в системе - проверка статус кода")
     @Description("Проверяется одновременно успех логина и корректный код ответа, так как проверка через код." +
             "Также проверяется кейс Для авторизации нужно передать все обязательные поля, так как полей" +
-            "всего 2")
-    public void courierSuccessLoginAndResponseStatusCodeIsCorrect() {
-        Courier courier = initCourierJavaObject();
-        sendPostRequestCourier(courier);
-        Response response = courierLoginAndSetCourierId(courier);
-        removeCourier(courier);
-        compareStatusCode(response, 200);
+            "всего 2 + проверка тела ответа при логине (то есть смотрим наличие id)")
+    public void courierSuccessLoginResponseStatusCodeAndBodyIsCorrect() {
+        courierClient.courierCreate(courier, 201);
+        Response response = courierClient.courierLogin(courier, 200);
+        courierClient.compareResponseBodySuccessLogin(response);
+        courierClient.removeCourier(courier);
     }
 
-    //Нельзя проверить правильность id, но можно проверить наличие
-    //Название поля не имеет смысла спрашивать, так как в случае успеха мы успешно положили поле id из response запроса
-    @Test
-    @DisplayName("Успех логина курьера в системе - проверка, что в ответе присылается id")
-    @Description("Мы не можем проверить корректность id, но можем проверить его наличие")
-    public void courierSuccessLoginResponseBodyIsCorrect() {
-        Courier courier = initCourierJavaObject();
-        sendPostRequestCourier(courier);
-        Response response = courierLoginAndSetCourierId(courier);
-        removeCourier(courier);
-        compareResponseBodySuccessLogin(response);
-    }
-
-    //периодически сервер отдает timeout и тест валится
-    //Должна быть ошибка и феилд кейса, так как в документации нет одного поля - поля "code". Когда я писал - была 504
+    //Должна быть ошибка и феил кейса, так как в документации нет одного поля - поля "code"
     @Test
     @DisplayName("Проверяем тело ответа при 400 ошибке")
     @Description("Отдельная проверка для тела при 400 ошибке")
     public void checkResponseBodyErrorBadRequest() {
-        Courier courier = initCourierJavaObject();
-        sendPostRequestCourier(courier);
-        courierLoginAndSetCourierId(courier);
-        Response response = courierLoginAndSetCourierId(
-                new Courier(
-                        null,
-                        courier.getPassword()
-                )
-        );
-        removeCourier(courier);
-        compareResponseBodyError(
+        courierClient.courierCreate(courier, 201);
+        Response response = courierClient.courierLogin(
+                new Courier(null, courier.getPassword()),
+                400);
+        courierClient.compareResponseBodyError(
                 response,
                 new ResponseErrorBody("Недостаточно данных для входа")
         );
+        courierClient.removeCourier(courier);
     }
 
     //Одиночная проверка тела ответа с ошибкой 404 - она должна упасть, так как документация не совпадает с реализацией
     //Тут будет ошибка, так как поле code в документации отсутствует, а фактически оно есть
 
     @Test
-    @DisplayName("Проверка тела ответа при статус коде 404")
-    @Description("Проверяю тело ответа для запроса логина курьера при ошибке 404")
+    @DisplayName("Проверка тела ответа при статус коде 404 Учетная запись не найдена")
+    @Description("Проверяю тело ответа для запроса логина курьера при ошибке 404 Учетная запись не найдена")
     public void checkLoginCourierResponseBodyErrorNotFound() {
-        Courier courier = initCustomCourierJavaObject(
-                "AaaA",
-                "BbbB",
-                "CccC"
-        );
-        sendPostRequestCourier(courier);
-        courierLoginAndSetCourierId(courier);
-        Courier loginCourier = initCustomCourierJavaObject(
-                "AaaA",
-                "sdfsdfsdf"
-        );
-        Response response = courierLoginAndSetCourierId(loginCourier);
-        removeCourier(courier);
-        compareResponseBodyError(response, new ResponseErrorBody("Учетная запись не найдена"));
-    }
-
-
-    //Отдельно вынес проверку кейса "если авторизоваться под несуществующим пользователем, запрос возвращает ошибку"
-    @Test
-    @DisplayName("Проверка кода ответа при попытке логина несуществующего пользователя - отдельной проверкой")
-    @Description("Проверяю кода ответа для запроса логина курьера при несуществующих кредах")
-    public void checkLoginNonExistCourierResponseStatusCode() {
-        Courier courier = initCustomCourierJavaObject(
-                "AaaA",
-                "BbbB",
-                "CccC"
-        );
-        sendPostRequestCourier(courier);
-        courierLoginAndSetCourierId(courier);
-        Courier loginCourier = initCustomCourierJavaObject(
-                "dfgdfgsdfg",
-                "sdfsdfsdf"
-        );
-        Response response = courierLoginAndSetCourierId(loginCourier);
-        removeCourier(courier);
-        compareStatusCode(response, 404);
+        Response response = courierClient.courierLogin(courier, 404);
+        courierClient.compareResponseBodyError(response, new ResponseErrorBody("Учетная запись не найдена"));
     }
 }

@@ -1,46 +1,46 @@
 package yandex.praktikim.parameterized;
 
+import api.client.CourierClient;
 import com.example.model.Courier;
 import io.qameta.allure.Description;
 import io.qameta.allure.junit4.DisplayName;
-import io.restassured.response.Response;
+import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import yandex.praktikim.BaseCourierTestClass;
 
 //Создал отельный класс для проверок обязательности полей и сделал его параметризованным
 @RunWith(Parameterized.class)
-public class CourierLoginRequiredFieldsTest extends BaseCourierTestClass {
+public class CourierLoginRequiredFieldsTest {
     private final String login;
     private final String password;
-    private final Integer expectedStatusCode;
+
+    private final Courier courier;
+    private final CourierClient courierClient;
 
     public CourierLoginRequiredFieldsTest(
             String login,
-            String password,
-            Integer expectedStatusCode) {
+            String password) {
         this.login = login;
         this.password = password;
-        this.expectedStatusCode = expectedStatusCode;
+        courierClient = new CourierClient();
+        courier = new Courier("AaaAAA", "BbbBBB", "CccCС");
     }
 
-    //написал все варианты, в том числе и частные случаи
-
-    //Тут и для кейса "для авторизации нужно передать все обязательные поля" (так как полей всего два, то в остальных
-    // случаях ответ 400 статус код)
-    //И для кейса "если какого-то поля нет, запрос возвращает ошибку",
-    //Так как по документации все поля должны быть и они все обязательные
-    //200 статус проверен отдельно
     @Parameterized.Parameters
     public static Object[][] getTestData() {
         return new Object[][] {
-                {"AaaA", null, 400},
-                {null, "BbbB", 400},
-                {null, null, 400},
+                {"AaaAAA", null},
+                {null, "BbbBBB"},
+                {null, null},
         };
     }
 
+    //нужно при таймауте логина
+    @After
+    public void removeCourier() {
+        courierClient.removeCourier(courier);
+    }
 
     //Периодически сервер таймаутит, не знаю с чем это связано
     @Test
@@ -48,19 +48,7 @@ public class CourierLoginRequiredFieldsTest extends BaseCourierTestClass {
     @Description("Проверка всех частных случаев, когда не хватает каких-то полей" +
             "По документации ВСЕ поля должны быть, иначе ошибка")
     public void checkRequiredFieldsLoginCourierRequestError() {
-        Courier courier = initCustomCourierJavaObject(
-                "AaaA",
-                "BbbB",
-                "CccC"
-        );
-        sendPostRequestCourier(courier);
-        courierLoginAndSetCourierId(courier);
-        Courier loginCourier = initCustomCourierJavaObject(
-                login,
-                password
-        );
-        Response response = courierLoginAndSetCourierId(loginCourier);
-        removeCourier(courier);
-        compareStatusCode(response, expectedStatusCode);
+        courierClient.courierCreate(courier, 201);
+        courierClient.courierLogin(new Courier(login, password), 400);
     }
 }

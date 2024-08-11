@@ -1,13 +1,13 @@
 package yandex.praktikim.parameterized;
 
-import com.example.model.Order;
+import api.client.OrdersClient;
+import com.example.model.generator.OrderGenerator;
 import io.qameta.allure.Description;
 import io.qameta.allure.junit4.DisplayName;
-import io.restassured.response.Response;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import yandex.praktikim.BaseOrderCreationTestClass;
 
 /**
  * Тут проверяем условия:
@@ -16,23 +16,28 @@ import yandex.praktikim.BaseOrderCreationTestClass;
  * можно совсем не указывать цвет;
  */
 @RunWith(Parameterized.class)
-public class OrderCreationColorTest extends BaseOrderCreationTestClass {
+public class OrderCreationColorTest {
     private final String[] colors;
-    private final Integer expectedStatusCode;
 
-    public OrderCreationColorTest(String[] colors, Integer expectedStatusCode) {
+    private OrdersClient ordersClient;
+
+    public OrderCreationColorTest(String[] colors) {
         this.colors = colors;
-        this.expectedStatusCode = expectedStatusCode;
     }
 
     @Parameterized.Parameters
     public static Object[][] getTestData() {
         return new Object[][] {
-                {new String[] {"BLACK"}, 201},
-                {new String[] {"GREY"}, 201},
-                {new String[] {"BLACK", "GREY"}, 201},
-                {null, 201},
+                {new String[] {"BLACK"}},
+                {new String[] {"GREY"}},
+                {new String[] {"BLACK", "GREY"}},
+                {null},
         };
+    }
+
+    @Before
+    public void init() {
+        ordersClient = new OrdersClient();
     }
 
     //Почему тут нет удаления тестовых данных - пояснил в OrderCreationTest
@@ -41,8 +46,6 @@ public class OrderCreationColorTest extends BaseOrderCreationTestClass {
     @Description("Проверяем все указанные в задании проверки, тест корректности статус кода и тела ответа отдельно" +
             "в OrderCreationTest. Видимо так и было задумано, так как в реализации все поля необязательные")
     public void createOrderWithSelectColor() {
-        Order order = initCustomColorOrderJavaObject(colors);
-        Response response = sendPostRequestOrder(order);
-        compareStatusCode(response, expectedStatusCode);
+        ordersClient.orderCreate(OrderGenerator.create(colors), 201);
     }
 }

@@ -1,86 +1,69 @@
 package yandex.praktikim.nonparameterized;
 
+import api.client.CourierClient;
 import com.example.model.Courier;
 import com.example.model.ResponseErrorBody;
+import com.example.model.generator.CourierGenerator;
 import io.qameta.allure.Description;
 import io.qameta.allure.junit4.DisplayName;
 import io.restassured.response.Response;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
-import yandex.praktikim.BaseCourierTestClass;
 
-//Очищение тестовых данных реализовал через логин (чтобы найти его id) и удаление курьера
-public class CourierCreationTest extends BaseCourierTestClass {
+public class CourierCreationTest {
 
-    @Test
-    @DisplayName("Проверка доступности ручки и одновременная проверка " +
-            "на 201 код статус ответа запроса создания курьера")
-    @Description("Я не нашел запроса на получение списка или одного курьера, поэтому просто проверяю его как сам факт, " +
-            "что пришел ответ 201 на создание")
-    public void createCourierRequestIsSuccessAndResponseStatusCodeIsCreated() {
-        Courier courier = initCourierJavaObject(); // вывел в шаг для наглядности
-        Response response = sendPostRequestCourier(courier);
-        //Чтобы получить id курьера, приходится логиниться, иначе его не узнать
-        removeCourier(courier);
-        compareStatusCode(response, 201);
+    private CourierClient courierClient;
+    private Courier courier;
+
+    @Before
+    public void init() {
+        courierClient = new CourierClient();
+        courier = CourierGenerator.create();
+    }
+
+    @After
+    public void removeCourier() {
+        courierClient.removeCourier(courier);
     }
 
     @Test
     @DisplayName("Проверяю тело ответа успешного запроса создания курьера")
-    @Description("вывел эту проверку в отдельный тест, чтобы было нагляднее")
+    @Description("тут также проверяется step'ы 201й статус код + доступность сервера + тело ответа")
     public void successCreateCourierRequestBodyIsCorrect() {
-        Courier courier = initCourierJavaObject();
-        Response response = sendPostRequestCourier(courier);
-        removeCourier(courier);
-        compareResponseBodyStatusCodeCreated(response);
+        Response response = courierClient.courierCreate(courier, 201);
+        courierClient.compareResponseBodyStatusCodeCreated(response); // вывел отдельным степом для наглядности
     }
 
     @Test
     @DisplayName("Тест, что нельзя создать двух одинаковых курьеров")
     @Description("проверка, что нельзя создать двух одинаковых курьеров + правильный статус код")
     public void cannotCreateDuplicateCourier() {
-        Courier courier = initCourierJavaObject();
-        sendPostRequestCourier(courier); //создали первого
-        Response response = sendPostRequestCourier(courier); //попытка создать дубликат
-        removeCourier(courier);
-        compareStatusCode(response, 409);
+        courierClient.courierCreate(courier, 201); //создали первого
+        courierClient.courierCreate(courier, 409); //попытка создать дубликат
     }
 
     @Test
     @DisplayName("Тест, что нельзя создать двух курьеров с одинаковыми логинами")
-    @Description("эта проверка была выписана отдельной строкой в задании + правильный статус код")
+    @Description("эта проверка была выписана отдельной строкой в задании")
     public void cannotCreateDuplicateCourierLogin() {
-        Courier courier = initCourierJavaObject();
-        sendPostRequestCourier(courier); //создали первого
-        Courier courierSameLogin = initCourierJavaObject();
-        courierSameLogin.setPassword("Password");
-        courierSameLogin.setFirstName("Gosling");
-        Response response = sendPostRequestCourier(courierSameLogin); //попытка создать с тем же логином
-        //если проверка упадет
-        removeCourier(courier);
-        //если создаться дубликат
-        removeCourier(courierSameLogin);
-        compareStatusCode(response, 409);
-
+        courierClient.courierCreate(courier, 201); //создали первого
+        courierClient.courierCreate(new Courier(
+                courier.getLogin(),
+                "notSamePassword",
+                "notSameFirstName"),
+                409
+        ); //попытка создать с таким же логином
     }
 
     //Тут будет ошибка, так как поле code в документации отсутствует, а фактически оно есть
-    //удалял каждый раз аккаунт руками через постман, так как кейс корректный
-    //пришлось передвинуть удаление тестовых данных перед проверкой, так как иначе это блочило бы тестирование
     @Test
     @DisplayName("Проверяю тело ответа запроса создания курьера с ошибкой 409")
     @Description("вывел эту проверку в отдельный тест, чтобы было нагляднее")
     public void notSuccessCreateCourierResponseBodySameLogin() {
-        Courier courier = initCourierJavaObject();
-        sendPostRequestCourier(courier);
-        Courier courierSameLogin = initCourierJavaObject();
-        courierSameLogin.setPassword("Password");
-        courierSameLogin.setFirstName("Gosling");
-        Response response = sendPostRequestCourier(courierSameLogin);
-        //если проверка упадет
-        removeCourier(courier);
-        //если создаться дубликат
-        removeCourier(courierSameLogin);
-        compareResponseBodyError(
+        courierClient.courierCreate(courier, 201); //создали первого
+        Response response = courierClient.courierCreate(courier, 409); //вызываем 409 ошибку
+        courierClient.compareResponseBodyError(
                 response,
                 new ResponseErrorBody("Этот логин уже используется. Попробуйте другой."));
     }
@@ -89,19 +72,11 @@ public class CourierCreationTest extends BaseCourierTestClass {
     //Тут будет ошибка, так как поле code в документации отсутствует, а фактически оно есть
 
     @Test
-    @DisplayName("Проверка тела ответа при статус коде 400")
+    @DisplayName("Проверка тела ответа при статус коде 400 + корректность статус кода")
     @Description("Проверяю тело ответа для запроса создания курьера при ошибке 400")
     public void checkCreateCourierResponseBodyErrorBadRequest() {
-        Courier courier = initCustomCourierJavaObject(
-                null,
-                null,
-                null
-        );
-        Response response = sendPostRequestCourier(courier);
-        if(response.statusCode() == 201) {
-            removeCourier(courier);
-        }
-        compareResponseBodyError(
+        Response response = courierClient.courierCreate(new Courier(), 400);
+        courierClient.compareResponseBodyError(
                 response,
                 new ResponseErrorBody("Недостаточно данных для создания учетной записи")
         );
